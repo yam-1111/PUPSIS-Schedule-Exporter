@@ -131,9 +131,16 @@ export function jsonToScheduleMaker(output) {
   //temp output of json
   let events = [];
   const jsonDaysWeek = ['M', 'T', 'W', 'TH', 'F', 'S', 'SUN']
+  const includeSubjectCode = document.getElementById("includeSubjectCode").checked;
   for (let i = 0; i < output.length; i++) {
+
+    const title = includeSubjectCode && output[i].subject_code
+    ? `[${output[i].subject_code}] ${output[i].subject}`
+    : output[i].subject;
+
+
     const eventEntry = {
-      title: output[i].subject,
+      title: title,
       description: output[i].instructor,
       day: jsonDaysWeek.indexOf(output[i].scheduled_day),
       start: helpers.convert12hrTo24hr(output[i].start_time),
