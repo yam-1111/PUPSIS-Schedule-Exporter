@@ -10,65 +10,61 @@ export function jsonToICal(events) {
 VERSION:2.0
 PRODID:-//PUPSIS TO ICS//Event Calendar//EN\n`;
 
-  const currentDate = new Date();
+  // Get date inputs
+  const startDateInput = document.getElementById("startDateInput").value;
+  const dateInput = document.getElementById("dateInput").value;
+  const includeSubjectCode = document.getElementById("includeSubjectCode").checked;
 
-  let startRecurringDate = "";
-  let endRecurringDate = "";
-  // date input from the user start and end recurring date
-  let startDateInput = document.getElementById("startDateInput").value;
-  let dateInput = document.getElementById("dateInput").value;
-  // check if the user checked to include subject code in title
-  let includeSubjectCode = document.getElementById("includeSubjectCode").checked;
+  // Set recurring dates
+  const startRecurringDate = startDateInput ? new Date(startDateInput) : new Date();
+  let endRecurringDate = dateInput ? new Date(dateInput) : new Date();
+  if (!dateInput) endRecurringDate.setMonth(endRecurringDate.getMonth() + 4);
 
-
-  if (startDateInput === "") {
-    startRecurringDate = new Date();
-  } else {
-    startRecurringDate = new Date(startDateInput);
-  }
-
-  if (dateInput === "") {
-    endRecurringDate = new Date();
-    endRecurringDate.setMonth(currentDate.getMonth() + 4);
-  }
-
-  else {
-    endRecurringDate = new Date(dateInput);
-  }
+  // Map of schedule days to Date.getDay() values
+  const dayMap = { SUN: 0, M: 1, T: 2, W: 3, TH: 4, F: 5, S: 6 };
 
   for (const event of events) {
-    const uid = event.subject.replace(/\s+/g, '') + event['start_date'] + event['start_time'];
-    const startDate = helpers.parseDateTime(event['start_date'], event['start_time']);
-    const endDate = helpers.parseDateTime(event['start_date'], event['end_time']);
+    // Parse original event dates
+    const originalStart = helpers.parseDateTime(event.start_date, event.start_time);
+    const originalEnd = helpers.parseDateTime(event.start_date, event.end_time);
 
-     // Set the date part of startDate and endDate to match the startRecurringDate
-     if (startRecurringDate) {
-      startDate.setFullYear(startRecurringDate.getFullYear(), 
-                           startRecurringDate.getMonth(), 
-                           startRecurringDate.getDate());
-      endDate.setFullYear(startRecurringDate.getFullYear(), 
-                         startRecurringDate.getMonth(), 
-                         startRecurringDate.getDate());
-    }
+    // Calculate first occurrence after startRecurringDate
+    const scheduledDay = dayMap[event.scheduled_day];
+    const firstOccurrence = new Date(startRecurringDate);
 
-    let summary = event.subject;
-    if (includeSubjectCode && event.subject_code) {
-      summary = `[${event.subject_code}] ${event.subject}`;
-    }
+    // Find next matching day
+    const dayOffset = (scheduledDay - firstOccurrence.getDay() + 7) % 7;
+    firstOccurrence.setDate(firstOccurrence.getDate() + dayOffset);
 
-    if (!startDate || !endDate) {
-      console.error('Invalid date or time format.');
-      continue;
-    }
+    // Preserve original time
+    firstOccurrence.setHours(
+      originalStart.getHours(),
+      originalStart.getMinutes(),
+      originalStart.getSeconds()
+    );
+
+    // Calculate end time
+    const endDate = new Date(firstOccurrence);
+    endDate.setHours(
+      originalEnd.getHours(),
+      originalEnd.getMinutes(),
+      originalEnd.getSeconds()
+    );
+
+    // Format dates for iCal
+    const uid = `${event.subject}-${event.start_date}-${event.start_time}`.replace(/\s+/g, '');
+    const summary = includeSubjectCode && event.subject_code
+      ? `[${event.subject_code}] ${event.subject}`
+      : event.subject;
 
     icalContent +=
       `BEGIN:VEVENT
 UID:${uid}
 SUMMARY:${summary}
-DTSTART:${helpers.formatICalDate(startDate)}
+DTSTART:${helpers.formatICalDate(firstOccurrence)}
 DTEND:${helpers.formatICalDate(endDate)}
 RRULE:FREQ=WEEKLY;UNTIL=${helpers.formatICalDate(endRecurringDate)}
-${event.instructor != '' ? 'DESCRIPTION: ' : ''}${event.instructor != '' ? event.instructor : ''}
+${event.instructor ? 'DESCRIPTION:' + event.instructor : ''}
 END:VEVENT\n`;
   }
 
