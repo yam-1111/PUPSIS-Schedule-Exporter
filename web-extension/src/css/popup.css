@@ -6,7 +6,7 @@
 
 .popup-container {
     width: 260px;
-    height: 200px;
+    height: 260px; /* Increased height to accommodate new options */
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
@@ -40,21 +40,43 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.25rem;
+    gap: 0.5rem;
 }
 
-#dateInput {
+.date-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.date-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.ical-options {
+    margin-top: 5px;
+}
+
+.ical-options input[type="checkbox"] {
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+#dateInput, #startDateInput {
     padding: 0.25rem;
     border-radius: 4px;
     outline: none;
     border: none;
     background-color: #FCFCFD;
     color: #36395A;
-    width: 50%;
+    width: 80%;
     filter: drop-shadow(0 2px 4px rgba(45, 35, 66, 0.4));
 }
 
-#dateInput:disabled {
+#dateInput:disabled, #startDateInput:disabled {
     background-color: #e4e2e2;
     color: rgba(0, 0, 0, 0.3);
     cursor: not-allowed;
@@ -136,7 +158,6 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-
 }
 
 .display-text{
@@ -147,7 +168,6 @@
 .label-text{
     color:white;
     text-align: center;
-
 }
 
 .display-text-error {

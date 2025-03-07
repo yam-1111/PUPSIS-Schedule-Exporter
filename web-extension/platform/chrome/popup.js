@@ -86,6 +86,7 @@ fileTypeSelect.addEventListener("change", (e) => {
 
 // set the default end date (4 months from now) of the date input 
 helpers.setDefaultEndDate(4);
+helpers.setDefaultStartDate();
 
 /***********************
  * editButton
